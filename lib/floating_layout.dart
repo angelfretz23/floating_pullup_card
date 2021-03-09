@@ -14,11 +14,11 @@ class FloatingPullUpCardLayout extends StatefulWidget {
 
   /// Set a custom [height] for the floating card,
   /// defaults to `86%` of total height of parent container or screen height if no finite height can be assumed
-  final double height;
+  final double? height;
 
   /// Set a custom [width] for the floating card,
   /// defaults to `100%` of total width of parent container or screen width if no finite width can be assumed
-  final double width;
+  final double? width;
 
   /// Set a [cardElevation] for the material,
   /// defaults to `4`
@@ -31,7 +31,7 @@ class FloatingPullUpCardLayout extends StatefulWidget {
   /// Sets the [state] of the floating card,
   /// See enum [FloatingPullUpState] for more details
   /// Defaults to [FloatingPullUpState.collapsed]
-  final FloatingPullUpState state;
+  final FloatingPullUpState? state;
 
   /// Set a custom card [color] to the card background
   /// defaults to [Colors.white]
@@ -40,13 +40,13 @@ class FloatingPullUpCardLayout extends StatefulWidget {
   final Color cardColor;
 
   /// Called each time the [FloatingPullUpState] is changed
-  final ValueChanged<FloatingPullUpState> onStateChange;
+  final ValueChanged<FloatingPullUpState?>? onStateChange;
 
   /// Defines a custom [dragHandleBuilder]
-  final DragHandleBuilder dragHandleBuilder;
+  final DragHandleBuilder? dragHandleBuilder;
 
   /// Defines a custom [cardBuilder]
-  final FloatingCardBuilder cardBuilder;
+  final FloatingCardBuilder? cardBuilder;
 
   /// Set a custom [borderRadius] of the default Card material
   ///
@@ -60,20 +60,20 @@ class FloatingPullUpCardLayout extends StatefulWidget {
 
   /// Sets a custom function that return a custom `Y Offset`  for state [FloatingPullUpState.collapsed]
   /// Please take into account that offset start from top to bottom
-  StateOffsetFunction collpsedStateOffset;
+  late StateOffsetFunction collpsedStateOffset;
 
   /// Sets a custom function that return a custom `Y Offset`  for state [FloatingPullUpState.hidden]
   /// Please take into account that offset start from top to bottom
-  StateOffsetFunction hiddenStateOffset;
+  late StateOffsetFunction hiddenStateOffset;
 
   /// Sets a custom function that return a custom `Y Offset`  for state [FloatingPullUpState.uncollapsed]
   /// Please take into account that offset start from top to bottom
-  UncollapsedStateOffsetFunction uncollpsedStateOffset;
+  late UncollapsedStateOffsetFunction uncollpsedStateOffset;
 
   /// Defines a callback to be called when a user taps outside the card
   /// If function returns [FloatingPullUpState] it will change state to the returned one
   /// Take into account that this is not getting called if a widget inside body is already handling a `Gesture`
-  final FloatingPullUpState Function() onOutsideTap;
+  final FloatingPullUpState Function()? onOutsideTap;
 
   /// If true, this will show an overlay behind the card tht obscures content behind
   /// Defaults to[false]
@@ -83,9 +83,9 @@ class FloatingPullUpCardLayout extends StatefulWidget {
   final Color overlayColor;
 
   FloatingPullUpCardLayout({
-    Key key,
-    @required this.child,
-    @required this.body,
+    Key? key,
+    required this.child,
+    required this.body,
     this.height,
     this.width,
     this.cardElevation = 4,
@@ -99,9 +99,9 @@ class FloatingPullUpCardLayout extends StatefulWidget {
       topLeft: Radius.circular(16),
       topRight: Radius.circular(16),
     ),
-    StateOffsetFunction collpsedStateOffset,
-    StateOffsetFunction hiddenStateOffset,
-    UncollapsedStateOffsetFunction uncollpsedStateOffset,
+    StateOffsetFunction? collpsedStateOffset,
+    StateOffsetFunction? hiddenStateOffset,
+    UncollapsedStateOffsetFunction? uncollpsedStateOffset,
     this.autoPadding = true,
     this.onOutsideTap,
     this.withOverlay = false,
@@ -145,26 +145,28 @@ class FloatingPullUpCardLayout extends StatefulWidget {
 }
 
 class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
-  double _currentOffset;
-  Widget _cardWidget;
+  double? _varCurrentOffset;
+  double get _currentOffset =>
+      _varCurrentOffset ?? MediaQuery.of(context).size.height;
+  set _currentOffset(double? offset) => _varCurrentOffset = offset;
+  Widget? _cardWidget;
   bool _beingDragged = false;
   bool _firstStateSet = false;
 
-  BoxConstraints _latestConstraints;
+  BoxConstraints? _latestConstraints;
 
-  Map<FloatingPullUpState, double> _stateOffsets;
-  FloatingPullUpState _currentState;
+  late Map<FloatingPullUpState, double> _stateOffsets;
+  FloatingPullUpState? _currentState;
 
   @override
   void initState() {
     super.initState();
-    // _currentOffset;
     if (widget.state == null) {
       _currentState = FloatingPullUpState.collapsed;
     } else {
       _currentState = widget.state;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
       setState(() {
         _setStateOffset(_currentState);
         _firstStateSet = true;
@@ -206,7 +208,9 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
           final double minOffset = _getMinOffset(maxHeight, height);
           _currentOffset = newOffset < (minOffset)
               ? minOffset
-              : newOffset > maxOffset ? maxOffset : newOffset;
+              : newOffset > maxOffset
+                  ? maxOffset
+                  : newOffset;
         });
       },
       onDragEnd: (dragDetails) {
@@ -223,7 +227,7 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
           }
 
           final double collapsedOffset =
-              _stateOffsets[FloatingPullUpState.collapsed];
+              _stateOffsets[FloatingPullUpState.collapsed]!;
           if (((_currentOffset < collapsedOffset / 2) && !pullingDown) ||
               pullingUp) {
             state = FloatingPullUpState.uncollapsed;
@@ -245,15 +249,12 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
 
   @override
   Widget build(BuildContext context) {
-    if (_currentOffset == null) {
-      _currentOffset = MediaQuery.of(context).size.height;
-    }
     return LayoutBuilder(
       builder: (context, constraints) {
         if (_latestConstraints != null &&
-            (_latestConstraints.maxHeight != constraints.maxHeight ||
-                _latestConstraints.maxWidth != constraints.maxWidth)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+            (_latestConstraints?.maxHeight != constraints.maxHeight ||
+                _latestConstraints?.maxWidth != constraints.maxWidth)) {
+          WidgetsBinding.instance?.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
                 _setStateOffset(_currentState);
@@ -266,7 +267,8 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
             _getMaxWidthFromConstraintsOrContext(context, constraints);
         final double maxHeight =
             _getMaxHeightFromConstraintsOrContext(context, constraints);
-        final double height = widget.height ?? maxHeight - widget.uncollpsedStateOffset(maxHeight);
+        final double height = widget.height ??
+            maxHeight - widget.uncollpsedStateOffset(maxHeight);
         final double width = widget.width ?? maxWidth;
         _stateOffsets = {
           FloatingPullUpState.collapsed:
@@ -279,14 +281,14 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
         _cardWidget = _buildCard(width, height, maxHeight);
 
         final double dif =
-            _stateOffsets[FloatingPullUpState.collapsed] - _currentOffset;
+            _stateOffsets[FloatingPullUpState.collapsed]! - _currentOffset;
         double beyondCollapseStateOffset = dif < 0 ? dif.abs() : 0;
         final double bottomPadding = widget.autoPadding
             ? _beingDragged
-                ? (maxHeight - _stateOffsets[FloatingPullUpState.collapsed]) -
+                ? (maxHeight - _stateOffsets[FloatingPullUpState.collapsed]!) -
                     beyondCollapseStateOffset
                 : _currentState != FloatingPullUpState.uncollapsed
-                    ? (maxHeight - _stateOffsets[_currentState])
+                    ? (maxHeight - _stateOffsets[_currentState]!)
                     : 0
             : 0;
         // print(
@@ -298,7 +300,7 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
               behavior: HitTestBehavior.translucent,
               onTap: () {
                 if (widget.onOutsideTap != null) {
-                  final FloatingPullUpState res = widget.onOutsideTap();
+                  final FloatingPullUpState res = widget.onOutsideTap!();
                   if (res != null) {
                     setState(() {
                       _setStateOffset(res);
@@ -346,11 +348,11 @@ class _FloatingPullUpCardLayoutState extends State<FloatingPullUpCardLayout> {
     );
   }
 
-  void _setStateOffset(FloatingPullUpState currentState) {
+  void _setStateOffset(FloatingPullUpState? currentState) {
     _currentState = currentState;
-    _currentOffset = _stateOffsets[currentState];
+    _currentOffset = _stateOffsets[currentState]!;
     if (widget.onStateChange != null) {
-      widget.onStateChange(_currentState);
+      widget.onStateChange!(_currentState);
     }
   }
 }
@@ -361,9 +363,9 @@ class AnimatedOverlay extends StatefulWidget {
   final Color color;
 
   const AnimatedOverlay({
-    Key key,
-    @required this.constraints,
-    @required this.show,
+    Key? key,
+    required this.constraints,
+    required this.show,
     this.color = const Color(0x66000000),
   }) : super(key: key);
 
@@ -392,7 +394,7 @@ class _AnimatedOverlayState extends State<AnimatedOverlay> {
   @override
   Widget build(BuildContext context) {
     if (!_init && widget.show) {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
         setState(() {
           _init = true;
         });
@@ -423,7 +425,7 @@ class _AnimatedOverlayState extends State<AnimatedOverlay> {
 
 double _getMaxOffset(double maxHeight,
     Map<FloatingPullUpState, double> stateOffsets, bool canBeHidden) {
-  return canBeHidden ? maxHeight : stateOffsets[FloatingPullUpState.collapsed];
+  return canBeHidden ? maxHeight : stateOffsets[FloatingPullUpState.collapsed]!;
 }
 
 double _getMinOffset(double maxHeight, double height) {

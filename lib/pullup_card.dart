@@ -19,31 +19,29 @@ typedef FloatingCardBuilder = Widget Function(
 );
 
 class FloatingPullUpCard extends StatefulWidget {
-  final double height;
-  final double width;
+  final double? height;
+  final double? width;
   final Color cardColor;
   final Widget child;
   final GestureDragUpdateCallback onDrag;
   final GestureDragEndCallback onDragEnd;
   final double elevation;
-  final BorderRadius borderRadius;
-  final FloatingCardBuilder cardBuilder;
-  final DragHandleBuilder dragHandlebuilder;
-  // final ValueChanged<bool> onDragChange;
+  final BorderRadius? borderRadius;
+  final FloatingCardBuilder? cardBuilder;
+  final DragHandleBuilder? dragHandlebuilder;
 
   const FloatingPullUpCard({
-    Key key,
+    Key? key,
     this.cardBuilder,
     this.cardColor = Colors.white,
     this.height,
     this.width,
     this.borderRadius,
-    @required this.child,
-    @required this.onDrag,
-    @required this.onDragEnd,
+    required this.child,
+    required this.onDrag,
+    required this.onDragEnd,
     this.elevation = 4,
     this.dragHandlebuilder,
-    // this.onDragChange,
   }) : super(key: key);
 
   @override
@@ -51,7 +49,7 @@ class FloatingPullUpCard extends StatefulWidget {
 }
 
 class _FloatingPullUpCardState extends State<FloatingPullUpCard> {
-  bool _beingDragged;
+  late bool _beingDragged;
 
   @override
   void initState() {
@@ -67,7 +65,7 @@ class _FloatingPullUpCardState extends State<FloatingPullUpCard> {
             ? Container(
                 width: widget.width,
                 height: widget.height,
-                child: widget.cardBuilder(
+                child: widget.cardBuilder!(
                   context,
                   constraints,
                   _buildDragHandle(constraints),
@@ -97,7 +95,7 @@ class _FloatingPullUpCardState extends State<FloatingPullUpCard> {
         dragStartBehavior: DragStartBehavior.start,
         onVerticalDragUpdate: widget.onDrag,
         onVerticalDragEnd: (details) {
-          widget?.onDragEnd(details);
+          widget.onDragEnd(details);
           _setDragState(false);
         },
         onVerticalDragStart: (_) {
@@ -113,7 +111,7 @@ class _FloatingPullUpCardState extends State<FloatingPullUpCard> {
           _setDragState(true);
         },
         child: widget.dragHandlebuilder != null
-            ? widget.dragHandlebuilder(context, constraints, _beingDragged)
+            ? widget.dragHandlebuilder!(context, constraints, _beingDragged)
             : _defaultDragHandleBuilder(
                 context,
                 constraints,
@@ -138,9 +136,9 @@ Widget _defaultCardBuilder(
   Widget child,
   Color cardColor,
   double cardElevation,
-  double defaultWidth,
-  double defaultHeight,
-  BorderRadius borderRadius,
+  double? defaultWidth,
+  double? defaultHeight,
+  BorderRadius? borderRadius,
   bool beingDragged,
 ) {
   // print("Building card ${Random().nextDouble()} $beingDragged");
@@ -167,7 +165,7 @@ Widget _defaultCardBuilder(
 _defaultDragHandleBuilder(
   BuildContext context,
   BoxConstraints constraints,
-  BorderRadius borderRadius,
+  BorderRadius? borderRadius,
   bool beingDragged,
 ) {
   return Container(
